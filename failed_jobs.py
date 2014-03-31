@@ -12,7 +12,7 @@ FAIL_REGEX = re.compile(r"^(red|yellow)")
 
 def fetch_jobs(url):
     response = requests.get(url)
-    return response.json()
+    return json.loads(response.text)
 
 
 def filter_failed_jobs(jobs):
