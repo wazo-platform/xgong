@@ -3,9 +3,11 @@ import os
 import json
 import sys
 import datetime
+import re
 
 URL = "http://jenkins.server.com/api/json"
 PERSIST = "/tmp/last_failed_jobs.json"
+FAIL_REGEX = re.compile(r"^(red|yellow)")
 
 
 def fetch_jobs(url):
@@ -14,7 +16,7 @@ def fetch_jobs(url):
 
 
 def filter_failed_jobs(jobs):
-    return [job['name'] for job in jobs if job['color'] in ['red', 'yellow']]
+    return [job['name'] for job in jobs if FAIL_REGEX.match(job['color'])]
 
 
 def new_failed_jobs(failed_jobs):
