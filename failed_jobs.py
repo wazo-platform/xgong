@@ -2,6 +2,7 @@ import requests
 import os
 import json
 import sys
+import datetime
 
 URL = "http://jenkins.server.com/api/json"
 PERSIST = "/tmp/last_failed_jobs.json"
@@ -33,6 +34,12 @@ def fetch_old_jobs():
         return json.loads(f.read())
 
 
+def print_failed_jobs(jobs):
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("{} failed jobs: {}".format(stamp,
+                                      ', '.join(jobs)))
+
+
 if __name__ == '__main__':
     response = fetch_jobs(URL)
     jobs = response['jobs']
@@ -40,5 +47,5 @@ if __name__ == '__main__':
     new_failed = new_failed_jobs(failed)
 
     if new_failed:
-        print("failed jobs: {}".format(', '.join(new_failed)))
+        print_failed_jobs(new_failed)
         sys.exit(1)
