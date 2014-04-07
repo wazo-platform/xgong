@@ -50,4 +50,4 @@ if __name__ == '__main__':
 
     if new_failed:
         print_failed_jobs(new_failed)
-        sys.exit(1)
+        sys.exit(2)
