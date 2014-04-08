@@ -1,0 +1,13 @@
+Source: jenkins-gong
+Maintainer: Gregory Eric Sanderson <gsanderson@avencall.com>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python (>= 2.6.6-3), debhelper (>= 7.4.3)
+Standards-Version: 3.9.1
+X-Python-Version: >= 2.6
+
+Package: jenkins-gong
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Ring a gong when jenkins fails
+
