@@ -21,13 +21,8 @@ install requests with "pip install requests"
 Configuration
 =============
 
-failed_jobs.py
---------------
-
-Edit the python script and put the address of your jenkins server in the URL
-variable like so:
-
-    URL = "http://jenkins.server.com/api/json"
+Create the directory /etc/jenkins-gong and copy the file config.ini into it.
+You will probably want to edit the file afterwards and change the url or the extension
 
 Dialplan
 --------
@@ -42,11 +37,6 @@ Place the following dialplan in /etc/asterisk/xivo-extrafeatures.conf
 Cronjob
 -------
 
-Edit the script jenkins-gong.sh and put the extension of the ringer in the EXTENSION
-variable like so:
+Create a cronjob file at /etc/cron.d/jenkins-gong with the following line:
 
-    EXTENSION='1000@default'
-
-Then create a cronjob file at /etc/cron.d/jenkins-gong with the following line:
-
-    * * * * 1-5 root   /usr/local/bin/jenkins-gong.sh
+    * * * * 1-5 root   /usr/local/bin/jenkins_gong
