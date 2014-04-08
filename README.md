@@ -21,7 +21,7 @@ install requests with "pip install requests"
 Configuration
 =============
 
-Create the directory /etc/jenkins-gong and copy the file config.ini into it.
+Create the directory /etc/jenkins-gong and copy the file jenkins_gong/config/config.ini into it.
 You will probably want to edit the file afterwards and change the url or the extension
 
 Dialplan
