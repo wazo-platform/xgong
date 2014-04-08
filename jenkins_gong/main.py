@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import requests
 import os
 import json
@@ -6,7 +5,7 @@ import datetime
 import re
 import subprocess
 
-from configparser import ConfigParser
+from ConfigParser import ConfigParser
 
 CONFIG_PATH = '/etc/jenkins-gong/config.ini'
 FAIL_REGEX = re.compile(r"^(red|yellow)")
@@ -56,7 +55,7 @@ def ring_gong(extension, macro):
     subprocess.check_call(command)
 
 
-if __name__ == '__main__':
+def main():
     config = load_config(CONFIG_PATH)
 
     jenkins_url = config.get('jenkins-gong', 'url')
@@ -71,3 +70,7 @@ if __name__ == '__main__':
     if new_failed:
         print_failed_jobs(new_failed)
         ring_gong(extension, macro)
+
+
+if __name__ == '__main__':
+    main()
