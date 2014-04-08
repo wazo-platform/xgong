@@ -51,7 +51,7 @@ def print_failed_jobs(jobs):
 
 
 def ring_gong(extension, macro):
-    command = ['asterisk', '-rx', 'channel originate {} {}'.format(extension, macro)]
+    command = ['asterisk', '-rx', 'channel originate Local/{} extension {}'.format(extension, macro)]
     subprocess.check_call(command)
 
 
