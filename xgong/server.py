@@ -17,8 +17,7 @@ config.read(['/etc/xgong/config.ini'])
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 TIMEZONE = pytz.timezone(config.get('gong', 'timezone'))
 
-jobstores = {'default': SQLAlchemyJobStore(url=config.get('gong', 'database'))}
-scheduler = BackgroundScheduler(jobstores=jobstores)
+scheduler = BackgroundScheduler()
 
 
 @get('/messages')
@@ -119,6 +118,9 @@ def setup():
     database = config.get('gong', 'database')[10:]
     if not os.path.exists(database):
         open(database, 'a').close()
+
+    jobstores = {'default': SQLAlchemyJobStore(url=config.get('gong', 'database'))}
+    scheduler.configure(jobstores=jobstores)
 
 
 if __name__ == "__main__":
