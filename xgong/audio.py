@@ -18,7 +18,7 @@ def convert_file(upload, filepath):
 
     upload.save(raw_filepath)
 
-    cmd = ['sox', raw_filepath, '-c', '1', '-r', '22050', filepath]
+    cmd = ['sox', raw_filepath, '-c', '1', '-r', '8000', filepath]
     subprocess.check_call(cmd)
 
     os.unlink(raw_filepath)
