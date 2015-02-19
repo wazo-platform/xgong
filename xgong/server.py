@@ -3,6 +3,7 @@ import uuid
 import os
 import audio
 import subprocess
+import shutil
 
 from datetime import datetime
 from bottle import run, request, post, get, delete, abort
@@ -73,7 +74,7 @@ def sorted_jobs():
 def play_message(message):
     path = audio_path(message['id'])
     new_path = '/tmp/xgong.wav'
-    os.rename(path, new_path)
+    shutil.move(path, new_path)
 
     originate = 'channel originate Local/{extension} extension s@xgong'
     cmd = ['asterisk', '-rx', originate.format(extension=config.get('gong', 'extension'))]
