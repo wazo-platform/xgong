@@ -1,13 +1,13 @@
-Source: jenkins-gong
+Source: xgong
 Maintainer: Gregory Eric Sanderson <gsanderson@avencall.com>
 Section: python
 Priority: optional
-Build-Depends: python-setuptools (>= 0.6b3), python (>= 2.6.6-3), debhelper (>= 7.4.3)
+Build-Depends: python-setuptools (>= 0.6b3), python (>= 2.6.6-3), debhelper (>= 7.4.3), python-bottle
 Standards-Version: 3.9.1
 X-Python-Version: >= 2.6
 
-Package: jenkins-gong
+Package: xgong
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}
-Description: Ring a gong when jenkins fails
+Depends: ${misc:Depends}, ${python:Depends}, python-bottle
+Description: Ring a gong when something fails
 

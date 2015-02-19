@@ -6,5 +6,5 @@
 %:
 	dh $@ --with python2
 #override_dh_auto_install:
-#	python setup.py install --root=debian/jenkins_gong --install-layout=deb --install-lib=/usr/share/jenkins_gong --install-scripts=/usr/share/jenkins_gong/jenkins_gong
+#	python setup.py install --root=debian/xgong --install-layout=deb --install-lib=/usr/share/xgong --install-scripts=/usr/share/xgong/xgong
 

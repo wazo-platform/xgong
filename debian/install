@@ -1,1 +1,2 @@
-jenkins_gong/config/config.ini etc/jenkins-gong
+xgong/config/config.ini etc/xgong/config.ini
+xgong/config/dialplan.conf etc/asterisk/extensions_extra.d/xgong.conf
