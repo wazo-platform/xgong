@@ -1,5 +1,5 @@
-import xgong
 import bottle
+import server
 
-xgong.server.setup()
+server.setup()
 application = bottle.default_app()
