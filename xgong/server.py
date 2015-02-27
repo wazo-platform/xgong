@@ -1,5 +1,7 @@
 import uuid
 import os
+import pwd
+import grp
 import audio
 import shutil
 import tempfile
@@ -81,6 +83,7 @@ def add_callfile(message):
     callfile = os.path.join(config.get('gong', 'tmp_callfiles'), message['id'])
     with open(callfile, 'w') as f:
         f.writelines("{}\n".format(l) for l in lines)
+    chown_to_asterisk(callfile)
 
     if 'start' in message:
         time = int(message['start'].strftime("%s"))
@@ -88,6 +91,12 @@ def add_callfile(message):
 
     new_path = callfile_path(message['id'])
     shutil.move(callfile, new_path)
+
+
+def chown_to_asterisk(path):
+    uid = pwd.getpwnam("asterisk").pw_uid
+    gid = grp.getgrnam("asterisk").gr_gid
+    os.chown(path, uid, gid)
 
 
 def encode_for_callfile(message):
@@ -111,6 +120,7 @@ def generate_audio_file(upload, uid):
     path = audio_path(uid)
     audio.convert_file(upload, path)
     audio.prepend_silence(path, config.get('gong', 'silence'))
+    chown_to_asterisk(path)
 
 
 def audio_path(uid, exten='.wav'):
