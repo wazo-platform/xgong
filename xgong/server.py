@@ -1,29 +1,43 @@
-import pytz
 import uuid
 import os
 import audio
-import subprocess
 import shutil
+import tempfile
+import json
 
 from datetime import datetime
 from bottle import run, request, post, get, delete, abort
 from ConfigParser import ConfigParser
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-
 config = ConfigParser()
 config.read(['/etc/xgong/config.ini'])
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
-TIMEZONE = pytz.timezone(config.get('gong', 'timezone'))
-
-scheduler = BackgroundScheduler()
 
 
 @get('/messages')
 def list_messages():
-    return {'messages': tuple(map_job(j) for j in sorted_jobs())}
+    return {'messages': all_messages()}
+
+
+def all_messages():
+    callfile_dir = config.get('gong', 'callfiles')
+
+    files = (os.path.join(callfile_dir, f)
+             for f in os.listdir(callfile_dir)
+             if f.startswith('xgong'))
+
+    return tuple(load_message_file(f) for f in files)
+
+
+def load_message_file(path):
+    start = datetime.fromtimestamp(os.getmtime(path))
+    with open(path) as f:
+        data = f.readline()[2:]
+        data = json.loads(data)
+        data['start'] = start
+
+    return start
 
 
 @post('/messages/add')
@@ -33,52 +47,52 @@ def add_message():
 
     message = {'description': request.forms.get('description', ''),
                'id': str(uuid.uuid4())}
+    if 'start' in request.forms:
+        message['start'] = datetime.strptime(request.forms['start'],
+                                             DATETIME_FORMAT)
+
     generate_audio_file(request.files['audio'], message['id'])
+    add_callfile(message)
 
-    if 'timestamp' in request.forms:
-        timestamp = datetime.strptime(request.forms.get('timestamp'),
-                                      DATETIME_FORMAT)
-        job = scheduler.add_job(play_message, 'date',
-                                args=(message,),
-                                run_date=timestamp,
-                                timezone=TIMEZONE)
-        adjust_schedules()
-    else:
-        job = scheduler.add_job(play_message,
-                                args=(message,),
-                                timezone=TIMEZONE)
 
-    return map_job(job)
+def add_callfile(message):
+    extension = config.get('gong', 'extension')
+    filepath = audio_path(message['uid'], '')
+    data = encode_message(message)
+
+    lines = ['# {}'.format(data),
+             'Channel: Local/{}'.format(extension),
+             'Context: gong',
+             'Extension: s',
+             'Setvar: AUDIO_FILE={}'.format(filepath)]
+
+    callfile_path = os.path.join(tempfile.gettempdir(), message['id'])
+    with open(callfile_path, 'w') as f:
+        f.writelines("{}\n".format(l) for l in lines)
+
+    if 'start' in message:
+        time = int(message['start'].total_seconds())
+        os.utime(callfile_path, (time, time))
+
+    new_path = callfile_path(message['id'])
+    shutil.move(callfile_path, new_path)
+
+
+def encode_message(message):
+    return json.dumps({'id': message['id'],
+                       'description': message['description']})
 
 
 @delete('/messages/<message_id>')
 def delete_message(message_id):
-    found = [j for j in scheduler.get_jobs() if j.args[0]['id'] == message_id]
-    if not found:
+    callfile = callfile_path(message_id)
+    audiofile = audio_path(message_id)
+
+    if not all(os.path.exists(callfile), os.path.exists(audiofile)):
         abort(404)
 
-    for job in found:
-        scheduler.remove_job(job.id)
-
-
-def map_job(job):
-    message = dict(job.args[0])
-    message['start'] = job.next_run_time.strftime(DATETIME_FORMAT)
-    return message
-
-
-def sorted_jobs():
-    return sorted(scheduler.get_jobs(), key=lambda j: j.next_run_time)
-
-
-def play_message(message):
-    path = audio_path(message['id'])
-    new_path = '/tmp/xgong.wav'
-    shutil.move(path, new_path)
-
-    originate = 'channel originate Local/{extension} extension s@xgong'
-    cmd = ['asterisk', '-rx', originate.format(extension=config.get('gong', 'extension'))]
-    subprocess.check_call(cmd)
+    os.unlink(callfile)
+    os.unlink(audiofile)
 
 
 def generate_audio_file(upload, uid):
@@ -87,15 +101,18 @@ def generate_audio_file(upload, uid):
     audio.prepend_silence(path, config.get('gong', 'silence'))
 
 
-def audio_path(uid):
-    return os.path.join(config.get('gong', 'audio'), "{}.wav".format(uid))
+def audio_path(uid, exten='.wav'):
+    name = "{}{}".format(uid, exten)
+    return os.path.join(config.get('gong', 'audio'), name)
+
+
+def callfile_path(uid):
+    name = "xgong_{}".format(uid)
+    return os.path.join(config.get('gong', 'callfiles'), name)
 
 
 def adjust_schedules():
-    messages = [{'job_id': job.id,
-                 'uid': job.args[0]['id'],
-                 'start': job.next_run_time}
-                for job in sorted_jobs()]
+    messages = all_messages()
     scheduled = [messages.pop(0)]
 
     for message in messages:
@@ -107,8 +124,9 @@ def adjust_schedules():
         scheduled.append(message)
 
     for message in scheduled:
-        scheduler.reschedule_job(message['job_id'], trigger='date',
-                                 run_date=message['start'], timezone=TIMEZONE)
+        path = callfile_path(message['id'])
+        time = int(message['start'].total_seconds())
+        os.utime(path, (time, time))
 
 
 def setup():
@@ -116,15 +134,7 @@ def setup():
     if not os.path.exists(audiodir):
         os.makedirs(audiodir)
 
-    database = config.get('gong', 'database')[10:]
-    if not os.path.exists(database):
-        open(database, 'a').close()
-
-    jobstores = {'default': SQLAlchemyJobStore(url=config.get('gong', 'database'))}
-    scheduler.configure(jobstores=jobstores)
-
 
 if __name__ == "__main__":
     setup()
-    scheduler.start()
     run(host='0.0.0.0', port=8000, debug=True, reloader=True)

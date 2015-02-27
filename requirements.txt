@@ -1,4 +1,1 @@
 bottle
-apscheduler
-sqlalchemy
-pysqlite
