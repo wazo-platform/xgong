@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import json
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from bottle import run, request, post, get, delete, abort
 from ConfigParser import ConfigParser
 
@@ -17,7 +17,14 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 @get('/messages')
 def list_messages():
-    return {'messages': all_messages()}
+    messages = tuple(encode_message(m) for m in all_messages())
+    return {'messages': messages}
+
+
+def encode_message(message):
+    return {'id': message['id'],
+            'description': message['description'],
+            'start': message['start'].strftime(DATETIME_FORMAT)}
 
 
 def all_messages():
@@ -27,17 +34,17 @@ def all_messages():
              for f in os.listdir(callfile_dir)
              if f.startswith('xgong'))
 
-    return tuple(load_message_file(f) for f in files)
+    return (load_message_file(f) for f in files)
 
 
 def load_message_file(path):
-    start = datetime.fromtimestamp(os.getmtime(path))
+    start = datetime.fromtimestamp(os.path.getmtime(path))
     with open(path) as f:
         data = f.readline()[2:]
         data = json.loads(data)
         data['start'] = start
 
-    return start
+    return data
 
 
 @post('/messages/add')
@@ -53,32 +60,37 @@ def add_message():
 
     generate_audio_file(request.files['audio'], message['id'])
     add_callfile(message)
+    adjust_schedules()
 
 
 def add_callfile(message):
     extension = config.get('gong', 'extension')
-    filepath = audio_path(message['uid'], '')
-    data = encode_message(message)
+    filepath = audio_path(message['id'], '')
+    data = encode_for_callfile(message)
+    max_retries = config.get('gong', 'max_retries')
+    retry_time = config.get('gong', 'retry_time')
 
     lines = ['# {}'.format(data),
              'Channel: Local/{}'.format(extension),
-             'Context: gong',
+             'Context: xgong',
              'Extension: s',
+             'MaxRetries: {}'.format(max_retries),
+             'RetryTime: {}'.format(retry_time),
              'Setvar: AUDIO_FILE={}'.format(filepath)]
 
-    callfile_path = os.path.join(tempfile.gettempdir(), message['id'])
-    with open(callfile_path, 'w') as f:
+    callfile = os.path.join(config.get('gong', 'tmp_callfiles'), message['id'])
+    with open(callfile, 'w') as f:
         f.writelines("{}\n".format(l) for l in lines)
 
     if 'start' in message:
-        time = int(message['start'].total_seconds())
-        os.utime(callfile_path, (time, time))
+        time = int(message['start'].strftime("%s"))
+        os.utime(callfile, (time, time))
 
     new_path = callfile_path(message['id'])
-    shutil.move(callfile_path, new_path)
+    shutil.move(callfile, new_path)
 
 
-def encode_message(message):
+def encode_for_callfile(message):
     return json.dumps({'id': message['id'],
                        'description': message['description']})
 
@@ -88,7 +100,7 @@ def delete_message(message_id):
     callfile = callfile_path(message_id)
     audiofile = audio_path(message_id)
 
-    if not all(os.path.exists(callfile), os.path.exists(audiofile)):
+    if not all((os.path.exists(callfile), os.path.exists(audiofile))):
         abort(404)
 
     os.unlink(callfile)
@@ -112,12 +124,14 @@ def callfile_path(uid):
 
 
 def adjust_schedules():
-    messages = all_messages()
+    messages = list(all_messages())
     scheduled = [messages.pop(0)]
 
     for message in messages:
         last = scheduled[-1]
-        end = last['start'] + audio.file_duration(audio_path(last['uid']))
+        end = (last['start'] 
+                + audio.file_duration(audio_path(last['id'])) 
+                + timedelta(seconds=1))
 
         if message['start'] <= end:
             message['start'] = end
@@ -125,7 +139,7 @@ def adjust_schedules():
 
     for message in scheduled:
         path = callfile_path(message['id'])
-        time = int(message['start'].total_seconds())
+        time = int(message['start'].strftime("%s"))
         os.utime(path, (time, time))
 
 
