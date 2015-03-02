@@ -42,6 +42,8 @@ def unique_filepath(extension):
     return os.path.join(tempfile.gettempdir(), name)
 
 
-def merge_files(files, filepath):
+def merge_files(files):
+    filepath = unique_filepath('mp3')
     cmd = ['sox'] + files + [filepath]
     subprocess.check_call(cmd)
+    return filepath
