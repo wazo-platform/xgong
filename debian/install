@@ -1,2 +1,2 @@
-xgong/config/config.ini etc/xgong
-xgong/config/xgong.conf etc/asterisk/extensions_extra.d
+etc/xgong/config.ini etc/xgong
+etc/asterisk/extensions_extra.d/xgong.conf etc/asterisk/extensions_extra.d
