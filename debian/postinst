@@ -10,6 +10,7 @@ case "$1" in
         mkdir -p /var/tmp/xgong/audio
         chown asterisk:asterisk -R /var/tmp/xgong
         asterisk -rx "dialplan reload"
+        service restart uwsgi
 	;;
 	abort-upgrade|abort-remove|abort-deconfigure)
 	;;
