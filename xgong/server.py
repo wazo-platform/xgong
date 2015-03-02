@@ -30,7 +30,7 @@ def encode_message(message):
 
 
 def all_messages():
-    callfile_dir = config.get('gong', 'callfiles')
+    callfile_dir = config.get('xgong', 'callfiles')
 
     files = (os.path.join(callfile_dir, f)
              for f in os.listdir(callfile_dir)
@@ -66,11 +66,11 @@ def add_message():
 
 
 def add_callfile(message):
-    extension = config.get('gong', 'extension')
+    extension = config.get('xgong', 'extension')
     filepath = audio_path(message['id'], '')
     data = encode_for_callfile(message)
-    max_retries = config.get('gong', 'max_retries')
-    retry_time = config.get('gong', 'retry_time')
+    max_retries = config.get('xgong', 'max_retries')
+    retry_time = config.get('xgong', 'retry_time')
 
     lines = ['# {}'.format(data),
              'Channel: Local/{}'.format(extension),
@@ -80,7 +80,7 @@ def add_callfile(message):
              'RetryTime: {}'.format(retry_time),
              'Setvar: AUDIO_FILE={}'.format(filepath)]
 
-    callfile = os.path.join(config.get('gong', 'tmp_callfiles'), message['id'])
+    callfile = os.path.join(config.get('xgong', 'tmp_callfiles'), message['id'])
     with open(callfile, 'w') as f:
         f.writelines("{}\n".format(l) for l in lines)
     chown_to_asterisk(callfile)
@@ -119,18 +119,18 @@ def delete_message(message_id):
 def generate_audio_file(upload, uid):
     path = audio_path(uid)
     audio.convert_file(upload, path)
-    audio.prepend_silence(path, config.get('gong', 'silence'))
+    audio.prepend_silence(path, config.get('xgong', 'silence'))
     chown_to_asterisk(path)
 
 
 def audio_path(uid, exten='.wav'):
     name = "{}{}".format(uid, exten)
-    return os.path.join(config.get('gong', 'audio'), name)
+    return os.path.join(config.get('xgong', 'audio'), name)
 
 
 def callfile_path(uid):
     name = "xgong_{}".format(uid)
-    return os.path.join(config.get('gong', 'callfiles'), name)
+    return os.path.join(config.get('xgong', 'callfiles'), name)
 
 
 def adjust_schedules():
@@ -139,9 +139,9 @@ def adjust_schedules():
 
     for message in messages:
         last = scheduled[-1]
-        end = (last['start'] 
-                + audio.file_duration(audio_path(last['id'])) 
-                + timedelta(seconds=1))
+        end = (last['start'] +
+               audio.file_duration(audio_path(last['id'])) +
+               timedelta(seconds=1))
 
         if message['start'] <= end:
             message['start'] = end
@@ -154,7 +154,7 @@ def adjust_schedules():
 
 
 def setup():
-    audiodir = config.get('gong', 'audio')
+    audiodir = config.get('xgong', 'audio')
     if not os.path.exists(audiodir):
         os.makedirs(audiodir)
 
