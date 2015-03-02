@@ -145,12 +145,6 @@ def adjust_schedules():
         os.utime(path, (time, time))
 
 
-def setup():
-    audiodir = config.get('xgong', 'audio')
-    if not os.path.exists(audiodir):
-        os.makedirs(audiodir)
-
-
 if __name__ == "__main__":
     setup()
     run(host='0.0.0.0', port=8000, debug=True, reloader=True)
