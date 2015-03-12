@@ -9,7 +9,7 @@ from xgong_jenkins import tts
 from ConfigParser import ConfigParser
 logger = logging.getLogger(__name__)
 
-CONFIG_PATH = '/etc/xgong/config.ini'
+CONFIG_PATH = '/etc/xgong/jenkins.ini'
 FAIL_REGEX = re.compile(r"^(red|yellow)")
 
 
@@ -52,13 +52,14 @@ def log_failed_jobs(jobs):
 
 def send_message(failed, url, preface):
     names = [n.replace("-", " ").replace("_", " ") for n in failed]
-    files = [preface] + [tts.generate(n) for n in names]
+    name_files = [tts.generate(n) for n in names]
+    files = [preface] + name_files
     filepath = tts.merge_files(files)
 
     upload = {'audio': ('audio.mp3', open(filepath, 'rb'))}
     requests.post(url + "/messages/add", files=upload)
 
-    for path in files + [filepath]:
+    for path in name_files + [filepath]:
         os.unlink(path)
 
 
