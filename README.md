@@ -1,18 +1,19 @@
 XiVO Gong
 =========
 
-Plays audio messages on a loud ringer. Used to notify the XiVO team when jobs on
-jenkins fail. The project is divided into 2 parts:
+Plays audio messages on a loud ringer. Used to alert the XiVO team when jobs on
+jenkins have failed. The project is divided into 2 parts:
 
  * xgong
 
-    Micro HTTP service used for playing audio files on the ringer. Files can be
-    uploaded and scheduled to be played at a certain time.
+    Micro HTTP service used for playing audio messages on the ringer. Audio
+    files can be uploaded and scheduled to be played immediately or in the
+    future.
 
  * xgong-jenkins
 
-    Client app that will periodically check a jenkins server for new failed jobs
-    and send notificatiosn to the xgong HTTP server
+    Client app that will periodically check a jenkins server for failed jobs
+    and send notifications to the xgong HTTP server.
 
 Server API
 ==========
@@ -40,7 +41,7 @@ By default, the server listens on port 9600
 
 
 Requirements
-===========
+============
 
  * A SIP Loud Ringer, like the Algo 8180
  * Jenkins server
