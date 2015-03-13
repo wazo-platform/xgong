@@ -59,7 +59,7 @@ def add_message():
         message['start'] = datetime.strptime(request.forms['start'],
                                              DATETIME_FORMAT)
 
-    generate_audio_file(request.files['audio'], message['id'])
+    generate_audio_file(request.files['audio'], message)
     add_callfile(message)
     adjust_schedules()
 
@@ -109,10 +109,14 @@ def delete_message(message_id):
     os.unlink(audiofile)
 
 
-def generate_audio_file(upload, uid):
-    path = audio_path(uid)
+def generate_audio_file(upload, message):
+    path = audio_path(message['id'])
     audio.convert_file(upload, path)
-    audio.prepend_silence(path, config.get('xgong', 'silence'))
+    if 'extension' in message:
+        silence = config.get('xgong', 'extension_silence')
+    else:
+        silence = config.get('silence')
+    audio.prepend_silence(path, silence)
 
 
 def audio_path(uid, exten='.wav'):
