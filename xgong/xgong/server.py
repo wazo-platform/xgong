@@ -1,10 +1,7 @@
 import uuid
 import os
-import pwd
-import grp
 import audio
 import shutil
-import tempfile
 import json
 
 from datetime import datetime, timedelta
@@ -146,5 +143,4 @@ def adjust_schedules():
 
 
 if __name__ == "__main__":
-    setup()
     run(host='0.0.0.0', port=8000, debug=True, reloader=True)
