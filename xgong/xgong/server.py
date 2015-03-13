@@ -23,7 +23,8 @@ def list_messages():
 def encode_message(message):
     return {'id': message['id'],
             'description': message['description'],
-            'start': message['start'].strftime(DATETIME_FORMAT)}
+            'start': message['start'].strftime(DATETIME_FORMAT),
+            'extension': message.get('extension')}
 
 
 def all_messages():
@@ -52,7 +53,8 @@ def add_message():
         abort(400, 'missing audio file')
 
     message = {'description': request.forms.get('description', ''),
-               'id': str(uuid.uuid4())}
+               'id': str(uuid.uuid4()),
+               'extension': request.forms.get('extension')}
     if 'start' in request.forms:
         message['start'] = datetime.strptime(request.forms['start'],
                                              DATETIME_FORMAT)
@@ -63,7 +65,7 @@ def add_message():
 
 
 def add_callfile(message):
-    extension = config.get('xgong', 'extension')
+    extension = message.get('extension', config.get('xgong', 'extension'))
     filepath = audio_path(message['id'], '')
     data = encode_for_callfile(message)
     max_retries = config.get('xgong', 'max_retries')
@@ -91,7 +93,8 @@ def add_callfile(message):
 
 def encode_for_callfile(message):
     return json.dumps({'id': message['id'],
-                       'description': message['description']})
+                       'description': message['description'],
+                       'extension': message.get('extension')})
 
 
 @delete('/messages/<message_id>')
