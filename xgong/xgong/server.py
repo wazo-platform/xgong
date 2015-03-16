@@ -2,6 +2,7 @@ import uuid
 import os
 import audio
 import storage
+import tts
 
 from config import load_config
 from datetime import datetime, timedelta
@@ -31,11 +32,23 @@ def add_message():
         abort(400, 'missing audio file')
 
     upload_path = storage.save_upload(request.files['audio'])
-    message = extract_message()
+    create_message_and_files(upload_path)
 
-    generate_audio_file(message, upload_path)
+
+@post('/messages/tts/add')
+def add_tts_message():
+    if 'text' not in request.files:
+        abort(400, 'missing text')
+
+    tts_path = tts.generate(request.forms['text'])
+    create_message_and_files(tts_path)
+
+
+def create_message_and_files(audio_path):
+    message = extract_message()
+    generate_audio_file(message, audio_path)
     storage.add_callfile(message)
-    os.unlink(upload_path)
+    os.unlink(audio_path)
     adjust_schedules()
 
 
