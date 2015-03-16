@@ -1,22 +1,20 @@
 import uuid
 import os
 import audio
-import shutil
-import json
+import storage
 
+from config import load_config
 from datetime import datetime, timedelta
 from bottle import run, request, post, get, delete, abort
-from ConfigParser import ConfigParser
 
-config = ConfigParser()
-config.read(['/etc/xgong/config.ini'])
+config = load_config
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 @get('/messages')
 def list_messages():
-    messages = tuple(encode_message(m) for m in all_messages())
+    messages = tuple(encode_message(m) for m in storage.all_messages())
     return {'messages': messages}
 
 
@@ -27,127 +25,74 @@ def encode_message(message):
             'extension': message.get('extension')}
 
 
-def all_messages():
-    callfile_dir = config.get('xgong', 'callfiles')
-
-    files = (os.path.join(callfile_dir, f)
-             for f in os.listdir(callfile_dir)
-             if f.startswith('xgong'))
-
-    return (load_message_file(f) for f in files)
-
-
-def load_message_file(path):
-    start = datetime.fromtimestamp(os.path.getmtime(path))
-    with open(path) as f:
-        data = f.readline()[2:]
-        data = json.loads(data)
-        data['start'] = start
-
-    return data
-
-
 @post('/messages/add')
 def add_message():
     if 'audio' not in request.files:
         abort(400, 'missing audio file')
 
-    message = {'description': request.forms.get('description', ''),
-               'id': str(uuid.uuid4()),
+    upload_path = storage.save_upload(request.files['audio'])
+    message = extract_message()
+
+    generate_audio_file(message, upload_path)
+    storage.add_callfile(message)
+    os.unlink(upload_path)
+    adjust_schedules()
+
+
+def extract_message():
+    message = {'id': str(uuid.uuid4()),
+               'description': request.forms.get('description', ''),
                'extension': request.forms.get('extension')}
+
     if 'start' in request.forms:
         message['start'] = datetime.strptime(request.forms['start'],
                                              DATETIME_FORMAT)
 
-    generate_audio_file(request.files['audio'], message)
-    add_callfile(message)
-    adjust_schedules()
-
-
-def add_callfile(message):
-    extension = message.get('extension', config.get('xgong', 'extension'))
-    filepath = audio_path(message['id'], '')
-    data = encode_for_callfile(message)
-    max_retries = config.get('xgong', 'max_retries')
-    retry_time = config.get('xgong', 'retry_time')
-
-    lines = ['# {}'.format(data),
-             'Channel: Local/{}'.format(extension),
-             'Context: xgong',
-             'Extension: s',
-             'MaxRetries: {}'.format(max_retries),
-             'RetryTime: {}'.format(retry_time),
-             'Setvar: AUDIO_FILE={}'.format(filepath)]
-
-    callfile = os.path.join(config.get('xgong', 'tmp_callfiles'), message['id'])
-    with open(callfile, 'w') as f:
-        f.writelines("{}\n".format(l) for l in lines)
-
-    if 'start' in message:
-        time = int(message['start'].strftime("%s"))
-        os.utime(callfile, (time, time))
-
-    new_path = callfile_path(message['id'])
-    shutil.move(callfile, new_path)
-
-
-def encode_for_callfile(message):
-    return json.dumps({'id': message['id'],
-                       'description': message['description'],
-                       'extension': message.get('extension')})
+    return message
 
 
 @delete('/messages/<message_id>')
 def delete_message(message_id):
-    callfile = callfile_path(message_id)
-    audiofile = audio_path(message_id)
+    callfile_path = storage.callfile_path(message_id)
+    audio_path = storage.audio_path(message_id)
 
-    if not all((os.path.exists(callfile), os.path.exists(audiofile))):
+    if not all((os.path.exists(callfile_path), os.path.exists(audio_path))):
         abort(404)
 
-    os.unlink(callfile)
-    os.unlink(audiofile)
+    os.unlink(callfile_path)
+    os.unlink(audio_path)
 
 
-def generate_audio_file(upload, message):
-    path = audio_path(message['id'])
-    audio.convert_file(upload, path)
+def generate_audio_file(message, raw_path):
+    audio_path = storage.audio_path(message['id'])
+    audio.convert_file(raw_path, audio_path)
+
     if 'extension' in message:
         silence = config.get('xgong', 'extension_silence')
     else:
         silence = config.get('silence')
-    audio.prepend_silence(path, silence)
 
-
-def audio_path(uid, exten='.wav'):
-    name = "{}{}".format(uid, exten)
-    return os.path.join(config.get('xgong', 'audio'), name)
-
-
-def callfile_path(uid):
-    name = "xgong_{}".format(uid)
-    return os.path.join(config.get('xgong', 'callfiles'), name)
+    audio.prepend_silence(audio_path, silence)
 
 
 def adjust_schedules():
-    messages = list(all_messages())
+    messages = list(storage.all_messages())
     scheduled = [messages.pop(0)]
 
     for message in messages:
         last = scheduled[-1]
-        end = (last['start'] +
-               audio.file_duration(audio_path(last['id'])) +
-               timedelta(seconds=1))
+        duration = audio.file_duration(storage.audio_path(last['id']))
+        end = last['start'] + duration + timedelta(seconds=1)
 
         if message['start'] <= end:
             message['start'] = end
         scheduled.append(message)
 
     for message in scheduled:
-        path = callfile_path(message['id'])
+        path = storage.callfile_path(message['id'])
         time = int(message['start'].strftime("%s"))
         os.utime(path, (time, time))
 
 
 if __name__ == "__main__":
-    run(host='0.0.0.0', port=8000, debug=True, reloader=True)
+    run(host='0.0.0.0', port=9600, debug=True, reloader=True)
