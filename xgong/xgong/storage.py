@@ -42,6 +42,7 @@ def add_callfile(message):
     default_extension = config.get('xgong', 'extension')
     max_retries = config.get('xgong', 'max_retries')
     retry_time = config.get('xgong', 'retry_time')
+    callerid = config.get('xgong', 'callerid')
 
     extension = message.get('extension') or default_extension
     file_path = audio_path(message['id'], '')
@@ -49,6 +50,7 @@ def add_callfile(message):
 
     lines = ['# {}'.format(encoded_message),
              'Channel: Local/{}'.format(extension),
+             'Callerid: "{}"'.format(callerid),
              'Context: xgong',
              'Extension: s',
              'MaxRetries: {}'.format(max_retries),
