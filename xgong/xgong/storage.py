@@ -1,9 +1,10 @@
-import datetime
 import json
 import os
 import uuid
 import tempfile
 import shutil
+
+from datetime import datetime
 
 from config import load_config
 
@@ -42,7 +43,7 @@ def add_callfile(message):
     max_retries = config.get('xgong', 'max_retries')
     retry_time = config.get('xgong', 'retry_time')
 
-    extension = message.get('extension', default_extension)
+    extension = message.get('extension') or default_extension
     file_path = audio_path(message['id'], '')
     encoded_message = encode_message(message)
 

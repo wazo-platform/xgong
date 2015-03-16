@@ -7,7 +7,7 @@ from config import load_config
 from datetime import datetime, timedelta
 from bottle import run, request, post, get, delete, abort
 
-config = load_config
+config = load_config()
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
@@ -67,10 +67,10 @@ def generate_audio_file(message, raw_path):
     audio_path = storage.audio_path(message['id'])
     audio.convert_file(raw_path, audio_path)
 
-    if 'extension' in message:
+    if message.get('extension') is not None:
         silence = config.get('xgong', 'extension_silence')
     else:
-        silence = config.get('silence')
+        silence = config.get('xgong', 'silence')
 
     audio.prepend_silence(audio_path, silence)
 
