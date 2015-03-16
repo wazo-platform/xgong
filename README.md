@@ -30,14 +30,27 @@ By default, the server listens on port 9600
 
     Parameters:
 
-    * audio: the audio file. Required.
-    * start: Optional timestamp indicating when the message should be played. If no timestamp
+    * audio: The audio file. Required.
+    * extension: Call this extension and play the message. If no extension is sent, use default.
+    * start: Timestamp for when the message should be played. If no timestamp
+      is sent, the file will be played immediately. Timestamps must be formatted as
+      "{YEAR}-{MONTH}-{DAY}T{HOUR}:{MINUTE}:{SECOND}" (without the braces).
+
+ * POST /messages/tts/add
+
+    Generate a message using a Text-To-Speech engine.
+
+    Parameters:
+
+    * text: The text to use for the message
+    * extension: Call this extension and play the message. If no extension is sent, use default.
+    * start: Timestamp for when the message should be played. If no timestamp
       is sent, the file will be played immediately. Timestamps must be formatted as
       "{YEAR}-{MONTH}-{DAY}T{HOUR}:{MINUTE}:{SECOND}" (without the braces).
 
  * DELETE /messages/{id}
 
-    Delete an audio message. Only messages that have not been played yet can be deleted
+    Delete a message. Only messages that have not been played yet can be deleted
 
 
 Requirements
