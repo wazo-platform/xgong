@@ -37,10 +37,11 @@ def add_message():
 
 @post('/messages/tts/add')
 def add_tts_message():
-    if 'text' not in request.files:
+    if 'text' not in request.forms:
         abort(400, 'missing text')
 
-    tts_path = tts.generate(request.forms['text'])
+    text = request.forms['text'].decode('utf-8')
+    tts_path = tts.generate(text)
     create_message_and_files(tts_path)
 
 

@@ -14,13 +14,12 @@ class ConversionError(Exception):
 
 def generate(sentence, language='fr'):
     lines = textwrap.wrap(sentence, 100)
-    files = [generate_chunk(l) for l in lines]
+    files = [generate_chunk(l, language) for l in lines]
 
     if len(files) == 1:
         return files[0]
 
-    filepath = unique_filepath('mp3')
-    merge_files(files, filepath)
+    filepath = merge_files(files)
 
     for path in files:
         os.unlink(path)
@@ -51,6 +50,6 @@ def unique_filepath(extension):
 
 def merge_files(files):
     filepath = unique_filepath('mp3')
-    cmd = ['sox', '-C', '32'] + files + [filepath]
+    cmd = ['sox'] + files + ['-C', '32', filepath]
     subprocess.check_call(cmd)
     return filepath
