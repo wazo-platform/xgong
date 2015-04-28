@@ -3,7 +3,6 @@ import os
 import json
 import re
 import logging
-from xgong_jenkins import tts
 
 
 from ConfigParser import ConfigParser
@@ -52,15 +51,8 @@ def log_failed_jobs(jobs):
 
 def send_message(failed, url, preface):
     names = [n.replace("-", " ").replace("_", " ") for n in failed]
-    name_files = [tts.generate(n) for n in names]
-    files = [preface] + name_files
-    filepath = tts.merge_files(files)
-
-    upload = {'audio': ('audio.mp3', open(filepath, 'rb'))}
-    requests.post(url + "/messages/add", files=upload)
-
-    for path in name_files + [filepath]:
-        os.unlink(path)
+    message = "{}. {}".format(preface, ". ".join(names))
+    requests.post(url + "/messages/tts/add", data={'text': message})
 
 
 def main():

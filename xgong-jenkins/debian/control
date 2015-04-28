@@ -8,6 +8,5 @@ Standards-Version: 3.9.5
 Package: xgong-jenkins
 Architecture: all
 Pre-Depends: dpkg, python2.7-minimal | python2.6-minimal, ${misc:Pre-Depends}
-Depends: ${misc:Depends}, ${python:Depends}, sox, libsox-fmt-mp3, python-requests
+Depends: ${misc:Depends}, ${python:Depends}, python-requests
 Description: Play a message when jenkins fails
-
