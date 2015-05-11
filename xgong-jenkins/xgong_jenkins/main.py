@@ -92,6 +92,8 @@ def send_message(message):
 
 
 def main():
+    config.read([CONFIG_PATH])
+
     new_jobs = get_failed_jobs()
     old_jobs = load_old_jobs()
     failed_jobs = combine_jobs(old_jobs, new_jobs)
@@ -102,5 +104,4 @@ def main():
 
 
 if __name__ == '__main__':
-    config.read([CONFIG_PATH])
     main()
