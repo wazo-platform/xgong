@@ -4,73 +4,103 @@ import json
 import re
 import logging
 
-
 from ConfigParser import ConfigParser
+
 logger = logging.getLogger(__name__)
+config = ConfigParser()
 
 CONFIG_PATH = '/etc/xgong/jenkins.ini'
 FAIL_REGEX = re.compile(r"^(red|yellow)")
 
 
-def load_config(filepath):
-    parser = ConfigParser()
-    parser.readfp(open(filepath))
-    return parser
+def get_failed_jobs():
+    jobs = fetch_jobs()
+    return filter_failed_jobs(jobs)
 
 
-def fetch_jobs(url):
+def fetch_jobs():
+    url = "{}/api/json".format(config.get('jenkins', 'url'))
     response = requests.get(url)
-    data = json.loads(response.text)
-    return data['jobs']
+    return response.json()['jobs']
 
 
 def filter_failed_jobs(jobs):
-    return [job['name'] for job in jobs if FAIL_REGEX.match(job['color'])]
+    return [job['name']
+            for job in jobs if FAIL_REGEX.match(job['color'])]
 
 
-def new_failed_jobs(failed_jobs, history):
-    old_jobs = fetch_old_jobs(history)
-
-    with open(history, mode='w') as f:
-        f.write(json.dumps(failed_jobs))
-
-    return set(failed_jobs) - set(old_jobs)
-
-
-def fetch_old_jobs(history):
-    if not os.path.exists(history):
+def load_old_jobs():
+    path = config.get('jenkins', 'history')
+    if not os.path.exists(path):
         return []
 
-    with open(history) as f:
+    with open(path) as f:
         return json.loads(f.read())
+
+
+def combine_jobs(old, new):
+    with open(config.get('jenkins', 'history'), mode='w') as f:
+        f.write(json.dumps(new))
+
+    return set(new) - set(old)
 
 
 def log_failed_jobs(jobs):
     logger.info("failed jobs: %s", ', '.join(jobs))
 
 
-def send_message(failed, url, preface):
-    names = [n.replace("-", " ").replace("_", " ") for n in failed]
-    message = "{}. {}".format(preface, ". ".join(names))
-    requests.post(url + "/messages/tts/add", data={'text': message})
+def announce_jobs(jobs):
+    sentences = build_messages(jobs)
+    message = ". ".join(sentences)
+    send_message(message)
+
+
+def build_messages(jobs):
+    for job in jobs:
+        culprits = find_culprits(job)
+        if culprits:
+            tpl = config.get('jenkins', 'culprit_message')
+            yield tpl.format(culprits=culprits, job=job)
+        else:
+            tpl = config.get('jenkins', 'message')
+            yield tpl.format(job=job)
+
+
+def find_culprits(job_name):
+    jenkins_url = config.get('jenkins', 'url')
+
+    url = "{}/job/{}/lastUnsuccessfulBuild/api/json".format(jenkins_url, job_name)
+    build = requests.get(url).json()
+
+    if not build['culprits']:
+        return None
+
+    sep = config.get('jenkins', 'culprit_sep').strip('"')
+    return sep.join(culprit_name(c['fullName']) for c in build['culprits'])
+
+
+def culprit_name(username):
+    if not config.has_option('people', username):
+        return username
+    return config.get('people', username)
+
+
+def send_message(message):
+    url = config.get('jenkins', 'url')
+    cleaned_message = message.replace("-", " ").replace("_", " ")
+    requests.post(url + "/messages/tts/add", data={'text': cleaned_message})
 
 
 def main():
-    config = load_config(CONFIG_PATH)
+    new_jobs = get_failed_jobs()
+    old_jobs = load_old_jobs()
+    failed_jobs = combine_jobs(old_jobs, new_jobs)
 
-    jenkins_url = config.get('jenkins', 'url')
-    history = config.get('jenkins', 'history')
-    gong_url = config.get('jenkins', 'xgong_url')
-    preface = config.get('jenkins', 'preface')
-
-    jobs = fetch_jobs(jenkins_url)
-    failed = filter_failed_jobs(jobs)
-    new_failed = new_failed_jobs(failed, history)
-
-    if new_failed:
-        log_failed_jobs(new_failed)
-        send_message(new_failed, gong_url, preface)
+    if failed_jobs:
+        log_failed_jobs(failed_jobs)
+        announce_jobs(failed_jobs)
 
 
 if __name__ == '__main__':
+    config.read([CONFIG_PATH])
     main()
