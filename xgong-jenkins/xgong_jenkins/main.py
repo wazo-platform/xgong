@@ -86,7 +86,7 @@ def culprit_name(username):
 
 
 def send_message(message):
-    url = config.get('jenkins', 'url')
+    url = config.get('xgong_url', 'url')
     cleaned_message = message.replace("-", " ").replace("_", " ")
     requests.post(url + "/messages/tts/add", data={'text': cleaned_message})
 
