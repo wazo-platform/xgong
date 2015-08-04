@@ -1,43 +1,25 @@
 import requests
-import subprocess
 import os
 import uuid
 import tempfile
-import textwrap
 
-GOOGLE_URL = "http://translate.google.com/translate_tts"
-
-
-class ConversionError(Exception):
-    pass
+API_URL = "http://api.voicerss.org"
+CHUNK = 2 * 1024 * 1024
 
 
-def generate(sentence, language='fr'):
-    lines = textwrap.wrap(sentence, 100)
-    files = [generate_chunk(l, language) for l in lines]
+def generate(text, apikey, language='fr-fr', aformat='alaw_8khz_mono'):
+    params = {'key': apikey,
+              'src': text,
+              'hl': language,
+              'c': 'WAV',
+              'f': aformat}
 
-    if len(files) == 1:
-        return files[0]
-
-    filepath = merge_files(files)
-
-    for path in files:
-        os.unlink(path)
-
-    return filepath
-
-
-def generate_chunk(line, language):
-    filepath = unique_filepath('mp3')
-
-    params = {'ie': 'UTF-8', 'tl': language, 'q': line.encode('utf8')}
-    response = requests.get(GOOGLE_URL, params=params, stream=True)
-
-    if response.status_code != 200:
-        raise ConversionError("google translate responded with {}".format(response.status_code))
+    filepath = unique_filepath('wav')
+    response = requests.post(API_URL, data=params, stream=True)
+    response.raise_for_status()
 
     with open(filepath, 'wb') as f:
-        for chunk in response.iter_content(2 * 1024 * 1024):
+        for chunk in response.iter_content(CHUNK):
             f.write(chunk)
 
     return filepath
@@ -46,10 +28,3 @@ def generate_chunk(line, language):
 def unique_filepath(extension):
     name = "{}.{}".format(uuid.uuid4(), extension)
     return os.path.join(tempfile.gettempdir(), name)
-
-
-def merge_files(files):
-    filepath = unique_filepath('mp3')
-    cmd = ['sox'] + files + ['-C', '32', filepath]
-    subprocess.check_call(cmd)
-    return filepath
