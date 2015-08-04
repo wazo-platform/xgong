@@ -33,8 +33,12 @@ def add_message():
 
     upload_path = storage.save_upload(request.files['audio'])
     audio_path = storage.tmp_path('wav')
-    audio.convert_file(upload_path, audio_path)
-    create_message_and_files(audio_path)
+    try:
+        audio.convert_file(upload_path, audio_path)
+        create_message_and_files(audio_path)
+    finally:
+        os.unlink(upload_path)
+        os.unlink(audio_path)
 
 
 @post('/messages/tts/add')
@@ -45,14 +49,16 @@ def add_tts_message():
     apikey = config.get('xgong', 'apikey')
     text = request.forms['text'].decode('utf-8')
     tts_path = tts.generate(text, apikey)
-    create_message_and_files(tts_path)
+    try:
+        create_message_and_files(tts_path)
+    finally:
+        os.unlink(tts_path)
 
 
 def create_message_and_files(audio_path):
     message = extract_message()
-    prepend_silence(message, audio_path)
+    prepare_audio(message, audio_path)
     storage.add_callfile(message)
-    os.unlink(audio_path)
     adjust_schedules()
 
 
@@ -80,7 +86,7 @@ def delete_message(message_id):
     os.unlink(audio_path)
 
 
-def prepend_silence(message, raw_path):
+def prepare_audio(message, raw_path):
     audio_path = storage.audio_path(message['id'])
 
     if message.get('extension') is not None:
@@ -88,7 +94,7 @@ def prepend_silence(message, raw_path):
     else:
         silence = config.get('xgong', 'silence')
 
-    audio.prepend_silence(audio_path, silence)
+    audio.prepend_silence(raw_path, audio_path, silence)
 
 
 def adjust_schedules():

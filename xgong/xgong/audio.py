@@ -3,21 +3,15 @@ import shutil
 
 from datetime import timedelta
 
-from storage import tmp_path
-
 
 def convert_file(old_path, new_path):
     cmd = ['sox', old_path, '-c', '1', '-r', '8000', new_path]
     subprocess.check_call(cmd)
 
 
-def prepend_silence(audio_path, seconds):
-    new_path = tmp_path('wav')
-
-    cmd = ['sox', audio_path, new_path, 'pad', '{}@0.00'.format(seconds)]
+def prepend_silence(audio_path, output_path, seconds):
+    cmd = ['sox', audio_path, output_path, 'pad', '{}@0.00'.format(seconds)]
     subprocess.check_call(cmd)
-
-    shutil.move(new_path, audio_path)
 
 
 def file_duration(audio_path):
