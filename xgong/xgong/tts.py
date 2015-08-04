@@ -7,7 +7,7 @@ API_URL = "http://api.voicerss.org"
 CHUNK = 2 * 1024 * 1024
 
 
-def generate(text, apikey, language='fr-fr', aformat='alaw_8khz_mono'):
+def generate(text, apikey, language='fr-fr', aformat='8khz_16bit_mono'):
     params = {'key': apikey,
               'src': text,
               'hl': language,
