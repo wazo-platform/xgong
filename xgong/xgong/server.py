@@ -32,7 +32,9 @@ def add_message():
         abort(400, 'missing audio file')
 
     upload_path = storage.save_upload(request.files['audio'])
-    create_message_and_files(upload_path)
+    audio_path = storage.tmp_path('wav')
+    audio.convert_file(upload_path, audio_path)
+    create_message_and_files(audio_path)
 
 
 @post('/messages/tts/add')
@@ -40,14 +42,15 @@ def add_tts_message():
     if 'text' not in request.forms:
         abort(400, 'missing text')
 
+    apikey = config.get('xgong', 'apikey')
     text = request.forms['text'].decode('utf-8')
-    tts_path = tts.generate(text)
+    tts_path = tts.generate(text, apikey)
     create_message_and_files(tts_path)
 
 
 def create_message_and_files(audio_path):
     message = extract_message()
-    generate_audio_file(message, audio_path)
+    prepend_silence(message, audio_path)
     storage.add_callfile(message)
     os.unlink(audio_path)
     adjust_schedules()
@@ -77,9 +80,8 @@ def delete_message(message_id):
     os.unlink(audio_path)
 
 
-def generate_audio_file(message, raw_path):
+def prepend_silence(message, raw_path):
     audio_path = storage.audio_path(message['id'])
-    audio.convert_file(raw_path, audio_path)
 
     if message.get('extension') is not None:
         silence = config.get('xgong', 'extension_silence')
