@@ -2,7 +2,7 @@
 Description=Xgong server
 
 [Service]
-User=www-data
+User=asterisk
 ExecStart=/usr/bin/xgong
 
 [Install]
