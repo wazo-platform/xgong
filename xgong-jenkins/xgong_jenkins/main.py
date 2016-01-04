@@ -57,32 +57,8 @@ def announce_jobs(jobs):
 
 def build_messages(jobs):
     for job in jobs:
-        culprits = find_culprits(job)
-        if culprits:
-            tpl = config.get('jenkins', 'culprit_message')
-            yield tpl.format(culprits=culprits, job=job)
-        else:
-            tpl = config.get('jenkins', 'message')
-            yield tpl.format(job=job)
-
-
-def find_culprits(job_name):
-    jenkins_url = config.get('jenkins', 'url')
-
-    url = "{}/job/{}/lastUnsuccessfulBuild/api/json".format(jenkins_url, job_name)
-    build = requests.get(url).json()
-
-    if not build['culprits']:
-        return None
-
-    sep = config.get('jenkins', 'culprit_sep').strip('"')
-    return sep.join(culprit_name(c['fullName']) for c in build['culprits'])
-
-
-def culprit_name(username):
-    if not config.has_option('people', username):
-        return username
-    return config.get('people', username)
+        tpl = config.get('jenkins', 'message')
+        yield tpl.format(job=job)
 
 
 def send_message(message):
