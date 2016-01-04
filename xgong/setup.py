@@ -19,5 +19,8 @@ setup(name='xgong',
       install_requires=[
           'requests'
       ],
+      scripts=[
+          'bin/xgong'
+      ],
       entry_points={}
       )

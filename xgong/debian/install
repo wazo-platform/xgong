@@ -1,3 +1,2 @@
 etc/xgong/config.ini etc/xgong
 etc/asterisk/extensions_extra.d/xgong.conf etc/asterisk/extensions_extra.d
-etc/uwsgi/apps-available/xgong.ini etc/uwsgi/apps-available
