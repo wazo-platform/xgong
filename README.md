@@ -63,22 +63,20 @@ Requirements
 Dependencies
 ============
 
+ * bottle
  * python (2.7)
  * requests
- * uwsgi
  * sox
 
 On debian, these dependencies can be installed like so :
 
-    sudo apt-get install python2.7 python-requests uwsgi sox libsox-fmt-mp3
+    sudo apt-get install python2.7 python-requests python-bottle sox libsox-fmt-mp3
 
 
 Build dependencies
 ==================
 
-To build on debian, you will need essential building tools and
-[dh-virtualenv](http://dh-virtualenv.readthedocs.org). Most tools needed (except
-dh-virtualenv) can be installed like so:
+Most tools needed can be installed like so:
 
     sudo apt-get install build-essential dpkg-dev debhelper python-all python-setuptools
 
@@ -96,7 +94,7 @@ After that, you can build both packages
 Configuration
 =============
 
-Under debian, config files will automatically be installed under /etc/xgong.
+Under debian, config files will automatically be installed under `/etc/xgong`.
 You will probably want to change the following options:
 
  * extension (config.ini)
