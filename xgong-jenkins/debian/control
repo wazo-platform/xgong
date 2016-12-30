@@ -1,9 +1,9 @@
 Source: xgong-jenkins
-Maintainer: Gregory Eric Sanderson <gsanderson@avencall.com>
+Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
 Section: python
 Priority: optional
 Build-Depends: python-setuptools, python (>= 2.7), debhelper (>= 9)
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 
 Package: xgong-jenkins
 Architecture: all

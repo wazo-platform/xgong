@@ -1,9 +1,9 @@
 Source: xgong
 Section: python
 Priority: optional
-Maintainer: Gregory Eric Sanderson <gsanderson@avencall.com>
+Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
 Build-Depends: debhelper (>= 9), python, python-dev, python-requests, python-bottle, dh-systemd
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 
 Package: xgong
 Architecture: any
