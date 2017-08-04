@@ -1,0 +1,11 @@
+xgong (1.0) wazo-dev; urgency=medium
+
+  * Merged packaging for xgong and xgong-jenkins
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Fri, 04 Aug 2017 15:40:59 -0400
+
+xgong (0.1dev-1) unstable; urgency=low
+
+    * Initial packaging
+
+ -- Gregory Eric Sanderson <gsanderson@avencall.com>  Thu, 19 Feb 2015 15:00:00 -0400

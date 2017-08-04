@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with systemd,python2
+
+override_dh_auto_install:
+	$(eval OLD_DESTDIR := $(DESTDIR))
+
+	ln -nfs ../debian xgong/debian
+	( cd xgong && dh_auto_install --destdir ../debian/xgong )
+
+	ln -nfs ../debian xgong-jenkins/debian
+	( cd xgong-jenkins && dh_auto_install --destdir ../debian/xgong-jenkins )
+
+	$(eval DESTDIR := $(OLD_DESTDIR))

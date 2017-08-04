@@ -1,12 +1,18 @@
 Source: xgong
 Section: python
 Priority: optional
-Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
+Maintainer: Wazo Maintainers <dev+pkg@wazo.community>
 Build-Depends: debhelper (>= 9), python, python-dev, python-requests, python-bottle, dh-systemd
 Standards-Version: 3.9.6
 
 Package: xgong
-Architecture: any
+Architecture: all
 Pre-Depends: dpkg (>= 1.16.1), python2.7-minimal, ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${python:Depends}, sox, libsox-fmt-mp3, python-requests, python-bottle
 Description: Ring a gong when something fails
+
+Package: xgong-jenkins
+Architecture: all
+Pre-Depends: dpkg, python2.7-minimal | python2.6-minimal, ${misc:Pre-Depends}
+Depends: ${misc:Depends}, ${python:Depends}, python-requests
+Description: Play a message when jenkins fails
