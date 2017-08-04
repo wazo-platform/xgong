@@ -15,6 +15,54 @@ jenkins have failed. The project is divided into 2 parts:
     Client app that will periodically check a jenkins server for failed jobs
     and send notifications to the xgong HTTP server.
 
+Requirements
+============
+
+ * A SIP Loud Ringer, like the Algo 8180
+ * Jenkins server
+ * XiVO server
+
+Dependencies
+============
+
+ * bottle
+ * python (2.7)
+ * requests
+ * sox
+
+Installation
+===
+
+   cat /etc/apt/sources.list.d/xivo-dev-tools.list << EOF
+   deb http://mirror.wazo.community/debian/ xivo-dev-tools main
+   EOF
+   apt-get update
+
+   apt-get install xgong xgong-jenkins
+
+Configuration
+=============
+
+Under debian, config files will automatically be installed under `/etc/xgong`.
+You will probably want to change the following options:
+
+ * extension (config.ini)
+
+    Extension used to dial the loud ringer
+
+ * `apikey` (config.ini)
+
+    Your Voice RSS API key
+
+ * url (jenkins.ini)
+
+    URL of the jenkins server to check
+
+After modifying `/etc/xgong/config.ini`, you must restart `xgong`:
+
+   systemctl restart xgong
+
+
 Server API
 ==========
 
@@ -53,26 +101,6 @@ By default, the server listens on port 9600
     Delete a message. Only messages that have not been played yet can be deleted
 
 
-Requirements
-============
-
- * A SIP Loud Ringer, like the Algo 8180
- * Jenkins server
- * XiVO server
-
-Dependencies
-============
-
- * bottle
- * python (2.7)
- * requests
- * sox
-
-On debian, these dependencies can be installed like so :
-
-    sudo apt-get install python2.7 python-requests python-bottle sox libsox-fmt-mp3
-
-
 Build dependencies
 ==================
 
@@ -82,25 +110,4 @@ Most tools needed can be installed like so:
 
 After that, you can build both packages
 
-    #build xgong server
-    cd xgong/xgong
     dpkg-buildpackage -us -uc
-
-    #build xgong jenkins client
-    cd xgong/xgong-jenkins
-    dpkg-buildpackage -us -uc
-
-
-Configuration
-=============
-
-Under debian, config files will automatically be installed under `/etc/xgong`.
-You will probably want to change the following options:
-
- * extension (config.ini)
-
-    Extension used to dial the loud ringer
-
- * url (jenkins.ini)
-
-    URL of the jenkins server to check
