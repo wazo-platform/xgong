@@ -8,7 +8,7 @@ case "$1" in
 	configure)
         mkdir -p /var/tmp/xgong/audio
         chown asterisk:asterisk -R /var/tmp/xgong
-        asterisk -rx "dialplan reload"
+        asterisk -rx "dialplan reload" || true
 	;;
 	abort-upgrade|abort-remove|abort-deconfigure)
 	;;

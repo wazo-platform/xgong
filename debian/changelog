@@ -1,3 +1,9 @@
+xgong (1.1) wazo-dev; urgency=medium
+
+  * fix postinst when asterisk is not running
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Mon, 07 Aug 2017 10:26:37 -0400
+
 xgong (1.0) wazo-dev; urgency=medium
 
   * Merged packaging for xgong and xgong-jenkins
