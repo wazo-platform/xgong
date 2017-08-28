@@ -1,5 +1,4 @@
-XiVO Gong
-=========
+# XiVO Gong
 
 Plays audio messages on a loud ringer. Used to alert the XiVO team when jobs on
 jenkins have failed. The project is divided into 2 parts:
@@ -15,23 +14,20 @@ jenkins have failed. The project is divided into 2 parts:
     Client app that will periodically check a jenkins server for failed jobs
     and send notifications to the xgong HTTP server.
 
-Requirements
-============
+## Requirements
 
  * A SIP Loud Ringer, like the Algo 8180
  * Jenkins server
  * XiVO server
 
-Dependencies
-============
+## Dependencies
 
  * bottle
  * python (2.7)
  * requests
  * sox
 
-Installation
-===
+## Installation
 
    cat > /etc/apt/sources.list.d/xivo-dev-tools.list << EOF
    deb http://mirror.wazo.community/debian/ xivo-dev-tools main
@@ -40,8 +36,7 @@ Installation
 
    apt-get install xgong xgong-jenkins
 
-Configuration
-=============
+## Configuration
 
 Under debian, config files will automatically be installed under `/etc/xgong`.
 You will probably want to change the following options:
@@ -63,8 +58,7 @@ After modifying `/etc/xgong/config.ini`, you must restart `xgong`:
    systemctl restart xgong
 
 
-Server API
-==========
+## Server API
 
 By default, the server listens on port 9600
 
@@ -101,8 +95,7 @@ By default, the server listens on port 9600
     Delete a message. Only messages that have not been played yet can be deleted
 
 
-Build dependencies
-==================
+## Build dependencies
 
 Most tools needed can be installed like so:
 
@@ -111,3 +104,4 @@ Most tools needed can be installed like so:
 After that, you can build both packages
 
     dpkg-buildpackage -us -uc
+
