@@ -117,3 +117,10 @@ After that, you can build both packages
 7. Asterisk calls the loud ringer
 8. The loud ringer answers
 9. Asterisk plays the sound file
+
+
+## Notes
+
+* `xgong` has an `adjust_schedules` function, so that 2 callfiles don't have the same timestamp and same extension.
+* The loud ringer needs a little time after answering, so that it can play a ringing sound announcing the upcoming message.
+* `xgong` logs are found with `journalctl -u xgong`.
