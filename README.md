@@ -33,7 +33,7 @@ Dependencies
 Installation
 ===
 
-   cat /etc/apt/sources.list.d/xivo-dev-tools.list << EOF
+   cat > /etc/apt/sources.list.d/xivo-dev-tools.list << EOF
    deb http://mirror.wazo.community/debian/ xivo-dev-tools main
    EOF
    apt-get update
