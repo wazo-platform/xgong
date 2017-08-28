@@ -105,3 +105,15 @@ After that, you can build both packages
 
     dpkg-buildpackage -us -uc
 
+
+## How xgong works
+
+1. Every minute, crond runs `xgong_jenkins`
+2. `xgong_jenkins` queries Jenkins to know what jobs have failed
+3. `xgong_jenkins` compares the list of failed jobs to the last known list stored in `/tmp/last_failed_jobs.json`
+4. If a job failed in the last minute, `xgong_jenkins` asks `xgong` to announce on the loud ringer the names of the failed jobs
+5. `xgong` generates a sound file through TTS via VoiceRSS
+6. `xgong` gives a callfile to Asterisk
+7. Asterisk calls the loud ringer
+8. The loud ringer answers
+9. Asterisk plays the sound file
