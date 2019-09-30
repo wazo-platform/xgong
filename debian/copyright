@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: xgong
-Source: git://github.com/wazo-pbx/xgong
+Source: git://github.com/wazo-platform/xgong
 
 Files: *
 Copyright: 2014 Gregory Eric Sanderson <gsanderson@avencall.com>
