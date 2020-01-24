@@ -4,10 +4,21 @@
 
 set -e
 
+USER='asterisk'
+
 case "$1" in
 	configure)
+        # add user
+	if ! getent passwd $USER > /dev/null ; then
+		echo "Adding system user $USER" 1>&2
+		adduser --quiet --system --group --no-create-home \
+			--home /var/lib/asterisk \
+			--gecos "Asterisk PBX daemon" \
+			$USER
+	fi
+
         mkdir -p /var/tmp/xgong/audio
-        chown asterisk:asterisk -R /var/tmp/xgong
+        chown $USER:$USER -R /var/tmp/xgong
         asterisk -rx "dialplan reload" || true
 	;;
 	abort-upgrade|abort-remove|abort-deconfigure)
